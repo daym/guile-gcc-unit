@@ -23,7 +23,7 @@
    (values ;(value nonref-values) : (string-append $1 " " $2) ; special-case "strg: foo bar baz lngt: 11" - which is really a stupid way to write it but hey.
            (@ id) : (reference $2)
            (value) : $1)
-   (attribute (name : values) : (cons $1 $3))))
+   (attribute (name : values) : (list $1 $3))))
 
 ; TODO eval the result, resolving "reference"s.
 
