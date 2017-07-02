@@ -33,17 +33,6 @@
            (value) : $1)
    (attribute (name : values) : (cons $1 $3))))
 
-(define (resolve-references! id entry)
-  (define (resolve! n)
-    (match n
-     ((key . value)
-       (match value
-         (('reference x-id) (set-cdr! n (cons "HELLLOOOO" x-id)))
-         (_ value)))))
-  (write id)
-  (match entry
-    ((type-name attributes) (list type-name (for-each resolve! attributes)))))
-
 (define (hash-ref-or-die hash-table key err)
   "Looks KEY up in HASH-TABLE.  If that's not there, calls ERR with the KEY."
   (let ((result (hash-ref hash-table key #f)))
