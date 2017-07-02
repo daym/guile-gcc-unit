@@ -4,7 +4,7 @@
   #:use-module (gcc-unit lexers))
 
 (define (reference value)
-  `(reference value))
+  `(reference ,value))
 
 (define (make-parser)
   (lalr-parser
@@ -19,10 +19,12 @@
    (type-name (value) : (string->symbol $1)) ; At the meta level.
    (name (value) : (string->symbol $1))
    (id (value) : (string->symbol $1))
-   (values ;(value values) : (string-append $1 " " $2) ; special-case "strg: foo bar baz lngt: 11" - which is really a stupid way to write it but hey.
+   (nonref-values ;(value nonref-values) : (string-append $1 " " $2)
+                  (value) : $1)
+   (values ;(value nonref-values) : (string-append $1 " " $2) ; special-case "strg: foo bar baz lngt: 11" - which is really a stupid way to write it but hey.
            (@ id) : (reference $2)
            (value) : $1)
-   (attribute (name : values) : (cons $1 $2))))
+   (attribute (name : values) : (cons $1 $3))))
 
 ; TODO eval the result, resolving "reference"s.
 
