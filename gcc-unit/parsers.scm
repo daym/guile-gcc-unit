@@ -32,10 +32,6 @@
 
 ; TODO eval the result, resolving "reference"s.
 
-(define (create-record-instance id type-name attributes)
-  (cons id
-    (deserialize-record-instance type-name attributes)))
-
 (define (resolve-references! id entry)
   (define (resolve! n)
     (match n
@@ -54,7 +50,7 @@
       (err key)
       result)))
 
-(define* (parse port #:optional (definition-creator create-record-instance))
+(define* (parse port #:optional (definition-creator deserialize-record-instance))
   "Parses GCC LU from PORT, resolves all references, and then calls DEFINITION-CREATOR for each of the nodes.
    The list of all the DEFINITION-CREATOR results is returned."
   (let* ((entries ((make-parser) (make-lexer port) error))
@@ -71,6 +67,9 @@
                                    (list type-name (for-each resolve! attributes))))))
          (_ (hash-for-each resolve-references! entries))
          (entries (hash-map->list cons entries))
-         (result (map (cut apply definition-creator <>) entries)))
+         (create-record-instance (lambda (id type-name attributes)
+                                   (cons id
+                                     (definition-creator type-name attributes))))
+         (result (map (cut apply create-record-instance <>) entries)))
     ;(write (hash-ref result (string->symbol "1")))
     result))
