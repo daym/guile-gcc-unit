@@ -1,4 +1,5 @@
-;;; SPDX BSD-3-Clause
+;;; Copyright 2017 - 2017, Danny Milosavljevic
+;;; SPDX-License-Identifier: BSD-3-Clause
 
 (use-modules (gcc-unit parsers))
 (use-modules (ice-9 match))

@@ -1,4 +1,5 @@
-;;; SPDX BSD-3-Clause
+;;; Copyright 2017 - 2017, Danny Milosavljevic
+;;; SPDX-License-Identifier: BSD-3-Clause
 
 (define-module (gcc-unit lexers)
   #:use-module (system base lalr)
