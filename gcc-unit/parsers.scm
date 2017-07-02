@@ -35,6 +35,7 @@
 (define (create-record-instance id type-name attributes)
   (cons id
     (deserialize-record-instance type-name attributes)))
+
 (define (resolve-references! id entry)
   (define (resolve! n)
     (match n
