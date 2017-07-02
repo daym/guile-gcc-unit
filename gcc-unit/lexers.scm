@@ -43,7 +43,7 @@
       (return port '@ '@))
      ((is-newline? c)
       (read-char port)
-      (if (is-at? (peek-char port))
+      (if (and (not (eof-object? (peek-char port))) (is-at? (peek-char port)))
         (return port 'def 'def)
         (next-token port)))
      ((is-whitespace? c)
