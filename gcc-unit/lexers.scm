@@ -45,7 +45,7 @@
       (read-char port)
       (if (is-at? (peek-char port))
         (return port 'def 'def)
-        (next-token port))) ; FIXME return port 'def
+        (next-token port)))
      ((is-whitespace? c)
       (read-char port)
       (next-token port))
@@ -63,7 +63,6 @@
           (unget-char port #\nl))))) ; Make sure that the next token is a def.
 
 (define-public (make-lexer port)
+  (skip-header-junk port)
   (lambda ()
-    ;(unget-char port #\nl)
-    ;(skip-header-junk port)
     (next-token port)))
