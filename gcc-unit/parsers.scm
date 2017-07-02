@@ -33,8 +33,6 @@
            (value) : $1)
    (attribute (name : values) : (cons $1 $3))))
 
-; TODO eval the result, resolving "reference"s.
-
 (define (resolve-references! id entry)
   (define (resolve! n)
     (match n
