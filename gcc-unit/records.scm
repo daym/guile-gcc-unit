@@ -2,6 +2,7 @@
 
 (define-module (gcc-unit records)
   #:use-module (srfi srfi-9 gnu) ; Records
+  #:export (type-decl)
 )
 
 (define-immutable-record-type <translation-unit-decl>
