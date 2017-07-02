@@ -54,6 +54,8 @@
       result)))
 
 (define* (parse port #:optional (definition-creator create-record-instance))
+  "Parses GCC LU from PORT, resolves all references, and then calls DEFINITION-CREATOR for each of the nodes.
+   The list of all the DEFINITION-CREATOR results is returned."
   (let* ((entries ((make-parser) (make-lexer port) error))
          (entries (alist->hash-table entries))
          (resolve-references! (lambda (id entry)
