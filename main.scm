@@ -5,9 +5,12 @@
 (define (create-instance type-name attributes)
   (list type-name attributes))
 
-(define f (call-with-input-string "
-@1   type_decl   name: @2 type: 2  chain: 4
-@2  identifier_node strg: int   lngt: 3" (cut parse <> create-instance)))
+(define input-file-name
+  (match (cdr (command-line))
+    (() "tests/1/input")
+    ((input-file-name) input-file-name)))
+
+(define f (call-with-input-file input-file-name (cut parse <> create-instance)))
 
 (for-each (lambda (node)
             (match node
