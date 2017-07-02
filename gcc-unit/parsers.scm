@@ -3,14 +3,6 @@
   #:use-module (gcc-unit records)
   #:use-module (gcc-unit lexers))
 
-(define (skip-header-junk port)
-  "Given a port, skips all the junk in front of the first '@' sign, or EOF - whichever comes first."
-  (let loop ((c (peek-char port)))
-    (if (and (not (eof-object? c)) (not (char=? #\@ c)))
-        (begin
-          (read-char port)
-          (loop (peek-char port))))))
-
 (define (reference value)
   `(reference value))
 
