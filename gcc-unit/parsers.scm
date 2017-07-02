@@ -1,18 +1,21 @@
 (define-module (gcc-unit parsers)
   #:use-module (system base lalr)
   #:use-module (gcc-unit records)
-  #:use-module (gcc-unit lexers))
+  #:use-module (gcc-unit lexers)
+  #:use-module (ice-9 match)
+  #:use-module (ice-9 hash-table)
+  #:export (parse))
 
 (define (reference value)
   `(reference ,value))
 
-(define (make-parser)
+(define (make-parser definition-creator)
   (lalr-parser
    (def @ value :) ; terminals
    (program (definition program) : (cons $1 $2)
             (*eoi*) : '())
-   (definition (def @ id type-name attributes) : (cons $3 (cons $4 $5))
-               (def @ id type-name) : (cons $3 (cons $4 '())))
+   (definition (def @ id type-name attributes) : (definition-creator $3 $4 $5)
+               (def @ id type-name) : (definition-creator $3 $4 '()))
    (attributes (attribute attributes) : (cons $1 $2)
                (attribute) : (cons $1 '()))
    (type-name (value) : (string->symbol $1)) ; At the meta level.
@@ -27,5 +30,13 @@
 
 ; TODO eval the result, resolving "reference"s.
 
-(define-public (parse port)
-  ((make-parser) (make-lexer port) error))
+(define (create-record-instance id type-name attributes)
+  (cons id
+    (cond
+      ((eq? type-name 'type_decl) (type-decl "NAME" "TYPE" "SCPE" "SRCP" "CHAIN"))
+      (else (cons type-name attributes)))))
+
+(define* (parse port #:optional (definition-creator create-record-instance))
+  (let* ((entries ((make-parser definition-creator) (make-lexer port) error))
+         (result (alist->hash-table entries)))
+    (hash-map->list cons result)))
