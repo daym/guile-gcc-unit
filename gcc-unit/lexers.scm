@@ -4,8 +4,8 @@
 
 (define-syntax-rule (port-source-location port)
   (make-source-location (port-filename port)
-                        (port-line port)
-                        (port-column port)
+                        (+ 1 (port-line port))
+                        (+ 1 (port-column port))
                         (false-if-exception (ftell port))
                         #f))
 
