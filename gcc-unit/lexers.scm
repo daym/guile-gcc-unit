@@ -24,15 +24,12 @@
       (string-contains ":\n\t@ " (string c))))
 
 (define (get-value port)
-  (let lp ((c (peek-char port))
-           (result '()))
-    (cond
-      ((is-delimiter? c)
-       (list->string (reverse result)))
-      (else
-       (read-char port) ; consume char
-       (lp (peek-char port)
-           (cons c result))))))
+  (cond
+    ((is-delimiter? (peek-char port))
+     '())
+    (else
+     (cons (read-char port) ; consume char
+           (get-value port)))))
 
 (define (next-token port)
   (let ((c (peek-char port)))
@@ -53,7 +50,7 @@
       (read-char port)
       (next-token port))
      (else
-      (return port 'value (get-value port))))))
+      (return port 'value (list->string (get-value port)))))))
 
 (define (skip-header-junk port)
   "Given a port, skips all the junk in front of the first '@' sign, or EOF - whichever comes first."
