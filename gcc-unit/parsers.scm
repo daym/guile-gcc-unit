@@ -70,6 +70,7 @@
          (create-record-instance (lambda (id type-name attributes)
                                    (cons id
                                      (definition-creator type-name attributes))))
-         (result (map (cut apply create-record-instance <>) entries)))
+         (result (map (cut apply create-record-instance <>) entries))
+         (result (map cdr result))) ; strip ids
     ;(write (hash-ref result (string->symbol "1")))
     result))
