@@ -26,4 +26,7 @@
 (define-public (deserialize-record-instance type-name attributes)
   (cond
     ((eq? type-name 'type_decl) (create-record-instance-by-lists type-decl '(name type scpe srcp chain) attributes '(name type chain)))
+    ((eq? type-name 'function_decl) (create-record-instance-by-lists function-decl '(name type scpe srcp chain args link body) attributes '(name type scpe srcp chain link body)))
+    ((eq? type-name 'function_type) (create-record-instance-by-lists function-type '(size algn retn prms) attributes '(size algn retn)))
+    ((eq? type-name 'parm_decl) (create-record-instance-by-lists function-type '(name type scpe srcp argt size algn used) attributes))
     (else (cons type-name attributes))))

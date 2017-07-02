@@ -2,7 +2,7 @@
 
 (define-module (gcc-unit records)
   #:use-module (srfi srfi-9 gnu) ; Records
-  #:export (type-decl <type-decl>)
+  #:export (type-decl function-decl function-type parm-decl)
 )
 
 (define-immutable-record-type <translation-unit-decl>
