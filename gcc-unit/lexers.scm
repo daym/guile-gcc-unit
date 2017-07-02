@@ -1,3 +1,5 @@
+;;; SPDX BSD-3-Clause
+
 (define-module (gcc-unit lexers)
   #:use-module (system base lalr)
   #:use-module (ice-9 textual-ports))

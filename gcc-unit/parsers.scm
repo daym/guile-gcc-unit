@@ -1,3 +1,5 @@
+;;; SPDX BSD-3-Clause
+
 (define-module (gcc-unit parsers)
   #:use-module (system base lalr)
   #:use-module (gcc-unit records)

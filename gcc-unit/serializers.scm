@@ -1,3 +1,5 @@
+;;; SPDX BSD-3-Clause
+
 (define-module (gcc-unit serializers)
   #:use-module (gcc-unit records)
   #:use-module (ice-9 hash-table)

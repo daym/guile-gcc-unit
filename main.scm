@@ -1,3 +1,5 @@
+;;; SPDX BSD-3-Clause
+
 (use-modules (gcc-unit parsers))
 (use-modules (ice-9 match))
 (use-modules (srfi srfi-26)) ; cut
