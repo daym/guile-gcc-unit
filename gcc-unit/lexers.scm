@@ -12,8 +12,11 @@
                         (false-if-exception (ftell port))
                         #f))
 
-(define-syntax-rule (return port category value)
+(define-syntax-rule (make-token-3 port category value)
   (make-lexical-token category (port-source-location port) value))
+
+(define-syntax-rule (make-token port category)
+  (make-token-3 port category category))
 
 (define (is-newline? c) (string-contains "\n" (string c)))
 (define (is-whitespace? c) (string-contains " \t\n" (string c)))
@@ -37,20 +40,20 @@
      ((eof-object? c) '*eoi*)
      ((is-colon? c)
       (read-char port)
-      (return port ': ':))
+      (make-token port ':))
      ((is-at? c)
       (read-char port)
-      (return port '@ '@))
+      (make-token port '@))
      ((is-newline? c)
       (read-char port)
       (if (and (not (eof-object? (peek-char port))) (is-at? (peek-char port)))
-        (return port 'def 'def)
+        (make-token port 'def)
         (next-token port)))
      ((is-whitespace? c)
       (read-char port)
       (next-token port))
      (else
-      (return port 'value (list->string (get-value port)))))))
+      (make-token-3 port 'value (list->string (get-value port)))))))
 
 (define (skip-header-junk port)
   "Given a port, skips all the junk in front of the first '@' sign, or EOF - whichever comes first."
