@@ -4,7 +4,6 @@
   #:use-module (srfi srfi-9 gnu) ; Records
 )
 
-#|
 (define-immutable-record-type <addr-expr>
   (addr-expr type op-0)
   addr-expr?
@@ -47,6 +46,7 @@
   (size complex-type-size)
   (algn complex-type-algn))
 
+#|
 const_decl name type scpe srcp chain cnst
 enumeral_type size algn prec sign min max csts
 field_decl name type scpe srcp chain size algn bpos
