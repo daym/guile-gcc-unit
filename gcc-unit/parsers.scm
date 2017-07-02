@@ -14,7 +14,7 @@
    (definition (def @ id type-name attributes) : (cons $3 (cons $4 $5))
                (def @ id type-name) : (cons $3 (cons $4 '())))
    (attributes (attribute attributes) : (cons $1 $2)
-               (attribute) : $1)
+               (attribute) : (cons $1 '()))
    (type-name (value) : (string->symbol $1)) ; At the meta level.
    (name (value) : (string->symbol $1))
    (id (value) : (string->symbol $1))
