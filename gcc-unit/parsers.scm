@@ -39,4 +39,5 @@
 (define* (parse port #:optional (definition-creator create-record-instance))
   (let* ((entries ((make-parser definition-creator) (make-lexer port) error))
          (result (alist->hash-table entries)))
+    ;(write (hash-ref result (string->symbol "1")))
     (hash-map->list cons result)))
