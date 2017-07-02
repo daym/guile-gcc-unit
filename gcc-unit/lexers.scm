@@ -57,13 +57,13 @@
 
 (define (skip-header-junk port)
   "Given a port, skips all the junk in front of the first '@' sign, or EOF - whichever comes first."
-    (let loop ((c (peek-char port)))
-      (if (and (not (eof-object? c)) (not (char=? #\@ c)))
-        (begin
-          (read-char port)
-          (loop (peek-char port)))
-        (if (not (eof-object? c))
-          (unget-char port #\nl))))) ; Make sure that the next token is a def.
+  (let loop ((c (peek-char port)))
+    (if (and (not (eof-object? c)) (not (char=? #\@ c)))
+      (begin
+        (read-char port)
+        (loop (peek-char port)))
+      (if (not (eof-object? c))
+        (unget-char port #\nl))))) ; Make sure that the next token is a def.
 
 (define-public (make-lexer port)
   (skip-header-junk port)
