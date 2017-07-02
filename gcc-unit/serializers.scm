@@ -18,12 +18,10 @@
 
 (define* (create-record-instance-by-lists proc attribute-names attribute-definitions #:optional (required-attribute-names attribute-names))
   "ATTRIBUTE-NAMES and REQUIRED-ATTRIBUTE-NAMES are mangled.  ATTRIBUTE-DEFINITIONS is not (yet)."
-  (let* ((attribute-definitions (alist->hash-table attribute-definitions)))
-      (write "X")
-    (write (hash-map->list cons attribute-definitions))
-  (let ((constructor-args (map (cut hash-ref-mangle-or-die attribute-definitions <> (lambda (key) (if (member key required-attribute-names) (error key) #f)))
+  (let* ((attribute-definitions (alist->hash-table attribute-definitions))
+         (constructor-args (map (cut hash-ref-mangle-or-die attribute-definitions <> (lambda (key) (if (member key required-attribute-names) (error key) #f)))
                                attribute-names)))
-    (apply proc constructor-args))))
+    (apply proc constructor-args)))
 
 (define-public (deserialize-record-instance type-name attributes)
   (cond
