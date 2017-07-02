@@ -35,10 +35,39 @@
 (define (create-record-instance id type-name attributes)
   (cons id
     (deserialize-record-instance type-name attributes)))
+(define (resolve-references! id entry)
+  (define (resolve! n)
+    (match n
+     ((key . value)
+       (match value
+         (('reference x-id) (set-cdr! n (cons "HELLLOOOO" x-id)))
+         (_ value)))))
+  (write id)
+  (match entry
+    ((type-name attributes) (list type-name (for-each resolve! attributes)))))
+
+(define (hash-ref-or-die hash-table key err)
+  "Looks KEY up in HASH-TABLE.  If that's not there, calls ERR with the KEY."
+  (let ((result (hash-ref hash-table key #f)))
+    (if (eq? result #f)
+      (err key)
+      result)))
 
 (define* (parse port #:optional (definition-creator create-record-instance))
   (let* ((entries ((make-parser) (make-lexer port) error))
-         (entries (map (cut apply definition-creator <>) entries))
-         (result (alist->hash-table entries)))
+         (entries (alist->hash-table entries))
+         (resolve-references! (lambda (id entry)
+                                (define (resolve! n)
+                                  (match n
+                                    ((key . value)
+                                      (match value
+                                       (('reference x-id) (set-cdr! n (hash-ref-or-die entries x-id error)))
+                                       (_ value)))))
+                                (match entry
+                                  ((type-name attributes)
+                                   (list type-name (for-each resolve! attributes))))))
+         (_ (hash-for-each resolve-references! entries))
+         (entries (hash-map->list cons entries))
+         (result (map (cut apply definition-creator <>) entries)))
     ;(write (hash-ref result (string->symbol "1")))
-    (hash-map->list cons result)))
+    result))
