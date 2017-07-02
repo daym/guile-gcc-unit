@@ -27,7 +27,7 @@
   (let lp ((c (peek-char port))
            (result '()))
     (cond
-      ((is-delimiter? c) ; encounter delimiter, finish to read a number
+      ((is-delimiter? c)
        (list->string (reverse result)))
       (else
        (read-char port) ; consume char
