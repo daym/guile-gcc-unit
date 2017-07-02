@@ -4,6 +4,10 @@
   #:use-module (srfi srfi-9 gnu) ; Records
 )
 
+(define-immutable-record-type <translation-unit-decl>
+  (translation-unit-decl)
+  translation-unit-decl?)
+
 (define-immutable-record-type <addr-expr>
   (addr-expr type op-0)
   addr-expr?
@@ -46,33 +50,227 @@
   (size complex-type-size)
   (algn complex-type-algn))
 
-#|
-const_decl name type scpe srcp chain cnst
-enumeral_type size algn prec sign min max csts
-field_decl name type scpe srcp chain size algn bpos
-function_decl name type srcp chain body link
-function_type size algn retn prms
-identifier_node strg lngt
-integer_cst type int
-integer_type name size algn prec sign min max
-modify_expr type op-0 op-1
-nop_expr type op-0
-parm_decl name type scpe srcp argt size algn used
-plus_expr type op-0 op-1
-pointer_bounds_type name size algn
-pointer_type size algn ptd
-real_type name size algn prec
-record_type name size algn tag flds
-reference_type size algn refd
-result_decl type scpe srcp note size algn
-return_expr type expr
-statement_list _0 _1
-translation_unit_decl
-tree_list valu chan
-trunc_div_expr type op-0 op-1
-type_decl name type scpe srcp chain
-union_type name size algn tag flds
-var_decl name type scpe srcp chain size algn used
-vector_type size algn
-void_type qual name unql algn
-|#
+(define-immutable-record-type <const-decl>
+  (const-decl name type scpe srcp chain cnst)
+  const-decl?
+  (name const-decl-name)
+  (type const-decl-type)
+  (scpe const-decl-scpe)
+  (srcp const-decl-srcp)
+  (chain const-decl-chain)
+  (cnst const-decl-cnst))
+
+(define-immutable-record-type <enumeral-type>
+  (enumeral-type size algn prec sign min max csts)
+  enumeral-type?
+  (size enumeral-type-size)
+  (algn enumeral-type-algn)
+  (prec enumeral-type-prec)
+  (sign enumeral-type-sign)
+  (min enumeral-type-min)
+  (max enumeral-type-max)
+  (csts enumeral-type-csts))
+
+(define-immutable-record-type <field-decl>
+  (field-decl name type scpe srcp chain size algn bpos)
+  field-decl?
+  (name field-decl-name)
+  (type field-decl-type)
+  (scpe field-decl-scpe)
+  (srcp field-decl-srcp)
+  (chain field-decl-chain)
+  (size field-decl-size)
+  (algn field-decl-algn)
+  (bpos field-decl-bpos))
+
+(define-immutable-record-type <function-decl>
+  (function-decl name type scpe srcp chain args link body)
+  function-decl?
+  (name function-decl-name)
+  (type function-decl-type) ; look for argument types here.
+  (scpe function-decl-scpe)
+  (srcp function-decl-srcp)
+  (chain function-decl-chain)
+  (args function-decl-args) ; argument names.
+  (link function-decl-link)
+  (body function-decl-body))
+
+(define-immutable-record-type <function-type>
+  (function-type size algn retn prms)
+  function-type?
+  (size function-type-size)
+  (algn function-type-algn)
+  (retn function-type-retn)
+  (prms function-type-prms))
+
+(define-immutable-record-type <identifier-node>
+  (identifier-node strg lngt)
+  identifier-node?
+  (strg identifier-node-strg)
+  (lngt identifier-node-lngt))
+
+(define-immutable-record-type <integer-cst>
+  (integer-cst type int)
+  integer-cst?
+  (type integer-cst-type)
+  (int integer-cst-int))
+
+(define-immutable-record-type <integer-type>
+  (integer-type name size algn prec sign min max)
+  integer-type?
+  (name integer-type-name)
+  (size integer-type-size)
+  (algn integer-type-algn)
+  (prec integer-type-prec)
+  (sign integer-type-sign)
+  (min integer-type-min)
+  (max integer-type-max))
+
+(define-immutable-record-type <void-type>
+  (void-type qual name unql algn)
+  void-type?
+  (qual void-type-qual)
+  (name void-type-name)
+  (unql void-type-unql)
+  (algn void-type-algn))
+
+(define-immutable-record-type <vector-type>
+  (vector-type size algn)
+  vector-type?
+  (size vector-type-size)
+  (algn vector-type-algn))
+
+(define-immutable-record-type <modify-expr>
+  (modify-expr type op-0 op-1)
+  modify-expr?
+  (type modify-expr-type)
+  (op-0 modify-expr-op-0)
+  (op-1 modify-expr-op-1))
+
+(define-immutable-record-type <nop-expr>
+  (nop-expr type op-0)
+  nop-expr?
+  (type nop-expr-type)
+  (op-0 nop-expr-op-0))
+
+(define-immutable-record-type <parm-decl>
+  (parm-decl name type scpe srcp argt size algn used)
+  parm-decl?
+  (name parm-decl-name)
+  (type parm-decl-type)
+  (scpe parm-decl-scpe)
+  (srcp parm-decl-srcp)
+  (argt parm-decl-argt)
+  (size parm-decl-size)
+  (algn parm-decl-algn)
+  (used parm-decl-used))
+
+(define-immutable-record-type <plus-expr>
+  (plus-expr type op-0 op-1)
+  plus-expr?
+  (type plus-expr-type)
+  (op-0 plus-expr-op-0)
+  (op-1 plus-expr-op-1))
+
+(define-immutable-record-type <record-type>
+  (record-type name size algn tag flds)
+  record-type?
+  (name record-type-name)
+  (size record-type-size)
+  (algn record-type-algn)
+  (tag record-type-tag)
+  (flds record-type-flds))
+
+(define-immutable-record-type <result-decl>
+  (result-decl type scpe srcp note size algn)
+  result-decl?
+  (type result-decl-type)
+  (scpe result-decl-scpe)
+  (srcp result-decl-srcp)
+  (note result-decl-note)
+  (size result-decl-size)
+  (algn result-decl-algn))
+
+(define-immutable-record-type <real-type>
+  (real-type name size algn prec)
+  real-type?
+  (name real-type-name)
+  (size real-type-size)
+  (algn real-type-algn)
+  (prec real-type-prec))
+
+(define-immutable-record-type <reference-type>
+  (reference-type size algn refd)
+  reference-type?
+  (size reference-type-size)
+  (algn reference-type-algn)
+  (refd reference-type-refd))
+
+(define-immutable-record-type <pointer-type>
+  (pointer-type size algn ptd)
+  pointer-type?
+  (size pointer-type-size)
+  (algn pointer-type-algn)
+  (ptd pointer-type-ptd))
+
+(define-immutable-record-type <tree-list>
+  (tree-list valu chan)
+  tree-list?
+  (valu tree-list-valu)
+  (chan tree-list-chan))
+
+(define-immutable-record-type <var-decl>
+  (var-decl name type scpe srcp chain size algn used)
+  var-decl?
+  (name var-decl-name)
+  (type var-decl-type)
+  (scpe var-decl-scpe)
+  (srcp var-decl-srcp)
+  (chain var-decl-chain)
+  (size var-decl-size)
+  (algn var-decl-algn)
+  (used var-decl-used))
+
+(define-immutable-record-type <return-expr>
+  (return-expr type expr)
+  return-expr?
+  (type return-expr-type)
+  (expr return-expr-expr))
+
+(define-immutable-record-type <type-decl>
+  (type-decl name type scpe srcp chain)
+  type-decl?
+  (name type-decl-name)
+  (type type-decl-type)
+  (scpe type-decl-scpe)
+  (srcp type-decl-srcp)
+  (chain type-decl-chain))
+
+(define-immutable-record-type <pointer-bounds-type>
+  (pointer-bounds-type name size algn)
+  pointer-bounds-type?
+  (name pointer-bounds-type-name)
+  (size pointer-bounds-type-size)
+  (algn pointer-bounds-type-algn))
+
+(define-immutable-record-type <trunc-div-expr>
+  (trunc-div-expr type op-0 op-1)
+  trunc-div-expr?
+  (type trunc-dir-expr-type)
+  (op-0 trunc-div-expr-op-0)
+  (op-1 trunc-div-expr-op-1))
+
+(define-immutable-record-type <union-type>
+  (union-type name size algn tag flds)
+  union-type?
+  (name union-type-name)
+  (size union-type-size)
+  (algn union-type-algn)
+  (tag union-type-tag)
+  (flds union-type-flds))
+
+(define-immutable-record-type <statement-list>
+  (statement-list _0 _1)
+  statement-list?
+  (_0 statement-list-_0)
+  (_1 statement-list-_1))
