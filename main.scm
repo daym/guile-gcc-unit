@@ -25,8 +25,9 @@
   (match flds-node
     (('field_decl attributes) ; name type scpe srcp chain size algn bpos
      (let ((name (decode-name (assoc-ref attributes 'name)))
-           (chain (assoc-ref attributes 'chain)))
-           ;(type (decode-basic-type (assoc-ref attributes 'type)))
+           (chain (assoc-ref attributes 'chain))
+           ; FIXME (type (decode-basic-type (assoc-ref attributes 'type)))
+           )
        ;(write type)
        (cons name (if chain (decode-record-fields chain) '())))
        )))
@@ -45,7 +46,7 @@
      "real")
     (('boolean_type attributes)
      "bool")
-    (('enumeral_type attributes)
+    (('enumeral_type attributes) ; FIXME which?
      "enum")
     (('record_type attributes)  ; TODO handle size, algn, tag=="struct"
      (list "record" (decode-record-fields (assoc-ref attributes 'flds))))))
@@ -59,6 +60,16 @@
     '())) ; Not really.  void foo() means UNSPECIFIED parameter list.
 
 
+(define (decode-args args)
+  (if args
+    (match args
+      (('parm_decl attributes)
+       (write "ARG")
+       (write (decode-name (assoc-ref attributes 'name)))
+       (cons (decode-name (assoc-ref attributes 'name)) ; also has type ?!
+             (decode-args (assoc-ref attributes 'chain)))))
+    '())) ; Not really.  Means UNSPECIFIED parameter names.
+
 (for-each (lambda (node)
             (match node
               (('function_decl attributes)
@@ -70,8 +81,10 @@
                           (match type-node
                             (('function_type type-attributes)
                               (let* ((type-retn (decode-basic-type (assoc-ref type-attributes 'retn)))
+                                     (args (decode-args (assoc-ref attributes 'args))) ; seldomly exist.
                                      (type-prms (decode-prms (assoc-ref type-attributes 'prms))))
                            (write name)
+                           ;(write args)
                            (write type-prms)
                            (write "->")
                            (write type-retn)
