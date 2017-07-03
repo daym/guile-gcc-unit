@@ -44,6 +44,7 @@
     ('signed 'signed)
     ('complex 'complex)
     ('sign 'sign)
+    ('op 'op)
     (_ 'value)))
 
 (define (next-token port)

@@ -16,7 +16,7 @@
 
 (define (make-parser)
   (lalr-parser
-   (def @ value : long short unsigned signed complex sign) ; terminals
+   (def @ value : long short unsigned signed complex sign op) ; terminals
    (program (definition program) : (cons $1 $2)
             (*eoi*) : '())
    (definition (def @ id type-name attributes) : (list $3 $4 $5)
@@ -24,7 +24,8 @@
    (attributes (attribute attributes) : (cons $1 $2)
                (attribute) : (cons $1 '()))
    (type-name (value) : (string->symbol $1)) ; At the meta level.
-   (name (value) : (string->symbol $1))
+   (name (value) : (string->symbol $1)
+         (op value) : (string->symbol (string-append "op " $2))) ; Special case because of the space.
    (id (value) : (string->symbol $1))
    (modified-value (value) : $1
                    (short modified-value) : (string-append $1 "-" $2)
@@ -32,7 +33,7 @@
                    (unsigned modified-value) : (string-append $1 "-" $2)
                    (signed modified-value) : (string-append $1 "-" $2)
                    (complex modified-value) : (string-append $1 "-" $2))
-   (modified-value-b (modified-value unsigned) : (string-append $1 "-" $2)
+   (modified-value-b (modified-value unsigned) : (string-append $1 "-" $2) ; WTF
                      (modified-value) : $1)
    (values (@ id) : (reference $2)
            (modified-value-b) : $1)
