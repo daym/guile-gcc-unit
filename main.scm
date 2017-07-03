@@ -21,6 +21,16 @@
     (('identifier_node attributes)
      (assoc-ref attributes 'strg))))
 
+(define (decode-record-fields flds-node)
+  (match flds-node
+    (('field_decl attributes) ; name type scpe srcp chain size algn bpos
+     (let ((name (decode-name (assoc-ref attributes 'name)))
+           (chain (assoc-ref attributes 'chain)))
+           ;(type (decode-basic-type (assoc-ref attributes 'type)))
+       ;(write type)
+       (cons name (if chain (decode-record-fields chain) '())))
+       )))
+
 (define (decode-basic-type type-node)
   (match type-node
     (('function_type attributes)
@@ -37,8 +47,8 @@
      "bool")
     (('enumeral_type attributes)
      "enum")
-    (('record_type attributes)
-     "record"))) ; FIXME recurse
+    (('record_type attributes)  ; TODO handle size, algn, tag=="struct"
+     (list "record" (decode-record-fields (assoc-ref attributes 'flds))))))
 
 (define (decode-prms prms)
   (if prms
