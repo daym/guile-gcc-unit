@@ -23,9 +23,10 @@
 
 (define (decode-basic-type type-node)
   (match type-node
-    ; TODO function type
+    (('function_type attributes)
+     #f) ; TODO
     (('pointer_type attributes)
-     "pointer")
+     (list "pointer" (decode-basic-type (assoc-ref attributes 'ptd))))
     (('void_type attributes)
      "void")
     (('integer_type attributes)
@@ -35,7 +36,9 @@
     (('boolean_type attributes)
      "bool")
     (('enumeral_type attributes)
-     "enum")))
+     "enum")
+    (('record_type attributes)
+     "record"))) ; FIXME recurse
 
 (define (decode-prms prms)
   (if prms
