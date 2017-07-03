@@ -16,7 +16,7 @@
 
 (define (make-parser)
   (lalr-parser
-   (def @ value :) ; terminals
+   (def @ value : long short unsigned signed complex sign) ; terminals
    (program (definition program) : (cons $1 $2)
             (*eoi*) : '())
    (definition (def @ id type-name attributes) : (list $3 $4 $5)
@@ -26,12 +26,19 @@
    (type-name (value) : (string->symbol $1)) ; At the meta level.
    (name (value) : (string->symbol $1))
    (id (value) : (string->symbol $1))
-   (nonref-values ;(value nonref-values) : (string-append $1 " " $2)
-                  (value) : $1)
-   (values ;(value nonref-values) : (string-append $1 " " $2) ; special-case "strg: foo bar baz lngt: 11" - which is really a stupid way to write it but hey.
-           (@ id) : (reference $2)
-           (value) : $1)
-   (attribute (name : values) : (cons $1 $3))))
+   (modified-value (value) : $1
+                   (short modified-value) : (string-append $1 "-" $2)
+                   (long modified-value) : (string-append $1 "-" $2)
+                   (unsigned modified-value) : (string-append $1 "-" $2)
+                   (signed modified-value) : (string-append $1 "-" $2)
+                   (complex modified-value) : (string-append $1 "-" $2))
+   (modified-value-b (modified-value unsigned) : (string-append $1 "-" $2)
+                     (modified-value) : $1)
+   (values (@ id) : (reference $2)
+           (modified-value-b) : $1)
+   (attribute (name : values) : (cons $1 $3)
+              (sign : signed) : (cons $1 "signed")
+              (sign : unsigned) : (cons $1 "unsigned"))))
 
 (define (hash-ref-or-die hash-table key err)
   "Looks KEY up in HASH-TABLE.  If that's not there, calls ERR with the KEY."

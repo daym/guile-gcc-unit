@@ -3,7 +3,8 @@
 
 (define-module (gcc-unit lexers)
   #:use-module (system base lalr)
-  #:use-module (ice-9 textual-ports))
+  #:use-module (ice-9 textual-ports)
+  #:use-module (ice-9 match))
 
 (define-syntax-rule (port-source-location port)
   (make-source-location (port-filename port)
@@ -34,13 +35,28 @@
      (cons (read-char port) ; consume char
            (get-value port)))))
 
+(define (detect-modifier-token s)
+  "Detects whether S is one of the C modifiers.  The only reason this is here is because 'strg:' entries are not quoted and so we have to have a way to find the end of them."
+  (match (string->symbol s)
+    ('long 'long)
+    ('short 'short)
+    ('unsigned 'unsigned)
+    ('signed 'signed)
+    ('complex 'complex)
+    ('sign 'sign)
+    (_ 'value)))
+
 (define (next-token port)
   (let ((c (peek-char port)))
     (cond
      ((eof-object? c) '*eoi*)
      ((is-colon? c)
       (read-char port)
-      (make-token port ':))
+      (if (and (not (eof-object? (peek-char port))) (is-whitespace? (peek-char port)))
+         (make-token port ':)
+         (begin
+           (list->string (cons #\: (get-value port))) ; drop line-number info "<built-in>:0"
+           (next-token port))))
      ((is-at? c)
       (read-char port)
       (make-token port '@))
@@ -53,7 +69,8 @@
       (read-char port)
       (next-token port))
      (else
-      (make-token-3 port 'value (list->string (get-value port)))))))
+      (let ((value (list->string (get-value port))))
+        (make-token-3 port (detect-modifier-token value) value))))))
 
 (define (skip-header-junk port)
   "Given a port, skips all the junk in front of the first '@' sign, or EOF - whichever comes first."
