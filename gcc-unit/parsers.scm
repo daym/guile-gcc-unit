@@ -54,16 +54,17 @@ The list of all the DEFINITION-CREATOR results of the toplevel nodes is returned
 Note that nodes can and will be eq? if they were resolved from the same id - and the caller may want to handle that case."
   (let* ((entries ((make-parser) (make-lexer port) error))
          (entries (alist->hash-table entries))
-         (resolve! (lambda (n)
-                     (match n
-                      ((key . value)
-                       (match value
-                        (('reference x-id) (set-cdr! n (hash-ref-or-die entries x-id error)))
-                        (_ value))))))
+         (resolve-attribute-value-reference!
+          (lambda (n)
+            (match n
+             ((key . value)
+              (match value
+               (('reference x-id) (set-cdr! n (hash-ref-or-die entries x-id error)))
+               (_ value))))))
          (resolve-references! (lambda (id entry)
                                 (match entry
                                   ((type-name attributes)
-                                   (list type-name (for-each resolve! attributes))))))
+                                   (list type-name (for-each resolve-attribute-value-reference! attributes))))))
          (_ (hash-for-each resolve-references! entries))
          (entries (hash-map->list cons entries))
          (create-record-instance (lambda (id type-name attributes)
