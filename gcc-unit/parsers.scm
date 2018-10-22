@@ -50,7 +50,8 @@
 
 (define* (parse port)
   "Parses GCC LU from PORT, resolves all references, and returns the first node.
-Note that attribute values can and will be eq? if they were resolved from the same id - and the caller may want to handle that case.  Nodes cannot be eq? to each other."
+Note that attribute values can and will be eq? if they were resolved from the same id - and the caller may want to handle that case.
+Nodes cannot be eq? to each other."
   (let* ((entries ((make-parser) (make-lexer port) error))
          (entries (alist->hash-table entries))
          (resolve-attribute-value-reference!
