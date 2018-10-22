@@ -50,16 +50,17 @@
 
 (define* (parse port #:optional (definition-creator deserialize-record-instance))
   "Parses GCC LU from PORT, resolves all references, and then calls DEFINITION-CREATOR for each of the nodes.
-The list of all the DEFINITION-CREATOR results is returned."
+The list of all the DEFINITION-CREATOR results of the toplevel nodes is returned.
+Note that nodes can and will be eq? if they were resolved from the same id - and the caller may want to handle that case."
   (let* ((entries ((make-parser) (make-lexer port) error))
          (entries (alist->hash-table entries))
+         (resolve! (lambda (n)
+                     (match n
+                      ((key . value)
+                       (match value
+                        (('reference x-id) (set-cdr! n (hash-ref-or-die entries x-id error)))
+                        (_ value))))))
          (resolve-references! (lambda (id entry)
-                                (define (resolve! n)
-                                  (match n
-                                    ((key . value)
-                                      (match value
-                                       (('reference x-id) (set-cdr! n (hash-ref-or-die entries x-id error)))
-                                       (_ value)))))
                                 (match entry
                                   ((type-name attributes)
                                    (list type-name (for-each resolve! attributes))))))
