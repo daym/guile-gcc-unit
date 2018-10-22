@@ -48,10 +48,9 @@
       (err key)
       result)))
 
-(define* (parse port #:optional (definition-creator deserialize-record-instance))
-  "Parses GCC LU from PORT, resolves all references, and then calls DEFINITION-CREATOR for each of the nodes.
-The list of all the DEFINITION-CREATOR results of the toplevel nodes is returned.
-Note that nodes can and will be eq? if they were resolved from the same id - and the caller may want to handle that case."
+(define* (parse port)
+  "Parses GCC LU from PORT, resolves all references, and returns the first node.
+Note that attribute values can and will be eq? if they were resolved from the same id - and the caller may want to handle that case.  Nodes cannot be eq? to each other."
   (let* ((entries ((make-parser) (make-lexer port) error))
          (entries (alist->hash-table entries))
          (resolve-attribute-value-reference!
@@ -64,13 +63,6 @@ Note that nodes can and will be eq? if they were resolved from the same id - and
          (resolve-references! (lambda (id entry)
                                 (match entry
                                   ((type-name attributes)
-                                   (list type-name (for-each resolve-attribute-value-reference! attributes))))))
-         (_ (hash-for-each resolve-references! entries))
-         (entries (hash-map->list cons entries))
-         (create-record-instance (lambda (id type-name attributes)
-                                   (cons id
-                                     (definition-creator type-name attributes))))
-         (result (map (cut apply create-record-instance <>) entries))
-         (result (map cdr result))) ; strip ids
-    ;(write (hash-ref result (string->symbol "1")))
-    result))
+                                   (list type-name (for-each resolve-attribute-value-reference! attributes)))))))
+    (hash-for-each resolve-references! entries)
+    (hash-ref entries (string->symbol "1")))) ; first entry (id 1) chains all the others.
