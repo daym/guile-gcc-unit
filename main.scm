@@ -24,6 +24,14 @@
     (('identifier_node attributes)
      (assoc-ref attributes 'strg))))
 
+(define (decode-constant node)
+  (match node
+   (#f #f)
+   (('integer_cst attributes)
+    (let ((int (assoc-ref attributes 'int)))
+      (string->number int)))
+   (_ node)))
+
 (define (follow-chain node)
   "Given a NODE, follow its 'chain attribute until it's not present.
 Return a list of all the nodes visited."
@@ -45,13 +53,14 @@ Return a list of all the nodes visited."
      ;(pretty-print (assoc-ref attributes 'type))
      ;(newline)
      (let ((name (decode-name (assoc-ref attributes 'name)))
+           (bpos (and=> (assoc-ref attributes 'bpos) decode-constant)) ; beginning, bits
+           (size (and=> (assoc-ref attributes 'size) decode-constant)) ; size, bits
            (chain (assoc-ref attributes 'chain))
-           ;FIXME (type (decode-basic-type (assoc-ref attributes 'type))) ; loops somewhere
+           (type (decode-basic-type (assoc-ref attributes 'type))) ; loops somewhere
            )
        ;(write type)
        ;(newline)
-       (cons name (if chain (decode-record-fields chain) '())))
-       )))
+       (cons (list name bpos size type) (if chain (decode-record-fields chain) '()))))))
 
 (define (extract-unique-struct-name record-type-node)
   "typedefs allow type aliases.  But here, we are actually interested in the unique struct definition name."
@@ -72,7 +81,12 @@ Return a list of all the nodes visited."
 (define (emit-struct-definition name fields)
   (write "define-struct")
   (write name)
-  (write fields)
+  (newline)
+  (for-each (lambda (field)
+              (write field)
+              (newline))
+            fields)
+  (write "end-struct")
   (newline))
 
 (define *structs* (alist->hashv-table '()))
@@ -147,11 +161,20 @@ Return a list of all the nodes visited."
 (for-each (lambda (node)
             (match node
               (('type_decl attributes)
+               (when (assoc-ref attributes 'name)
+                 (write (decode-name (assoc-ref attributes 'name))))
                (let* ((type-node (assoc-ref attributes 'type)))
-                  (match type-node
+                 (match type-node
                    (('record_type attributes)
                     ;(write "YES")
                     ;(write attributes)
+                    (newline))
+                   (((or 'integer_type 'real_type 'complex_type 'void_type 'array_type 'pointer_type 'boolean_type) attributes)
+                    (write (car type-node))
+                    (write (and=> (assoc-ref attributes 'size) decode-constant))
+                    (write (and=> (assoc-ref attributes 'sign) decode-constant))
+                    (write (and=> (assoc-ref attributes 'min) decode-constant))
+                    (write (and=> (assoc-ref attributes 'max) decode-constant))
                     (newline))
                    ((x attributes)
                     (write "ignored")
