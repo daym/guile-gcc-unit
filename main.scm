@@ -5,12 +5,18 @@
 (use-modules (ice-9 match))
 (use-modules (ice-9 pretty-print))
 (use-modules (ice-9 poe))
+(use-modules (ice-9 hash-table))
 (use-modules (srfi srfi-26)) ; cut
 
 (define input-file-name
   (match (cdr (command-line))
     (() "tests/1/input")
     ((input-file-name) input-file-name)))
+
+(define (extract-node-attributes node)
+  (match node
+    ((_ attributes)
+     attributes)))
 
 (define (decode-name node)
   "Given an identifier node, extracts the name string out of it."
@@ -31,6 +37,8 @@ Return a list of all the nodes visited."
 
 (define decode-name (pure-funcq decode-name))
 
+;; TODO: Support unions.
+
 (define (decode-record-fields flds-node)
   (match flds-node
     (('field_decl attributes) ; name type scpe srcp chain size algn bpos
@@ -45,7 +53,45 @@ Return a list of all the nodes visited."
        (cons name (if chain (decode-record-fields chain) '())))
        )))
 
+(define (extract-unique-struct-name record-type-node)
+  "typedefs allow type aliases.  But here, we are actually interested in the unique struct definition name."
+  (match record-type-node
+    (('record_type attributes)  ; TODO handle size, algn, tag=="struct"
+     (let ((name (assoc-ref attributes 'name))
+           (unql (assoc-ref attributes 'unql)))
+       (if unql
+           (extract-unique-struct-name unql)
+           (match name
+            (('type_decl b-attributes)
+             (write (decode-name (assoc-ref b-attributes 'name)))
+             (newline)
+             "?")
+            (('identifier_node b-attributes)
+             (string-append "struct " (decode-name name)))))))))
+
+(define (emit-struct-definition name fields)
+  (write "define-struct")
+  (write name)
+  (write fields)
+  (newline))
+
+(define *structs* (alist->hashv-table '()))
+
+(define (register-struct-definition! node)
+  (match node
+   (('record_type attributes)
+    (let* ((node (or (assoc-ref attributes 'unql) node))
+           (name (extract-unique-struct-name node))
+           (value node)
+           (existing-node (hashv-ref *structs* name)))
+      (hashv-set! *structs* name value)
+      (when (not existing-node)
+        (emit-struct-definition name (decode-record-fields (assoc-ref attributes 'flds))))
+      ; FIXME (assert (eqv? existing-node node))
+      name))))
+
 (define (decode-basic-type type-node)
+  "Decode basic types entirely, but keep composite types as references and deduplicate them."
   ;(write type-node)
   ;(newline)
   (match type-node
@@ -63,16 +109,26 @@ Return a list of all the nodes visited."
      "bool")
     (('enumeral_type attributes) ; FIXME which?
      "enum")
-    (('record_type attributes)  ; TODO handle size, algn, tag=="struct"
-     (list "record" (decode-record-fields (assoc-ref attributes 'flds))))))
+    (('record_type attributes)
+     (register-struct-definition! type-node))))
 
 (define decode-basic-type (pure-funcq decode-basic-type))
+
+(define (decode-type type-node)
+  (match type-node
+   (('record_type attributes)
+    (register-struct-definition! type-node)
+    ;; TODO: Check struct that is already registered (because it's unql).
+    (list "record" (decode-record-fields (assoc-ref attributes 'flds))))
+   (_ (decode-basic-type type-node))))
+
+(define decode-type (pure-funcq decode-type))
 
 (define (decode-prms prms)
   (if prms
     (match prms
       (('tree_list attributes)
-       (cons (decode-basic-type (assoc-ref attributes 'valu))
+       (cons (decode-type (assoc-ref attributes 'valu))
              (decode-prms (assoc-ref attributes 'chan)))))
     '())) ; Not really.  void foo() means UNSPECIFIED parameter list.
 
@@ -90,6 +146,18 @@ Return a list of all the nodes visited."
 
 (for-each (lambda (node)
             (match node
+              (('type_decl attributes)
+               (let* ((type-node (assoc-ref attributes 'type)))
+                  (match type-node
+                   (('record_type attributes)
+                    ;(write "YES")
+                    ;(write attributes)
+                    (newline))
+                   ((x attributes)
+                    (write "ignored")
+                    (write x)
+                    ;(write attributes)
+                    (newline)))))
               (('function_decl attributes)
                  ; Note: body == "undefined"
                  (let* ((name (decode-name (assoc-ref attributes 'name)))
@@ -98,7 +166,7 @@ Return a list of all the nodes visited."
                    (if (and (string-prefix? "ped_" name) (string=? "extern" link))
                           (match type-node
                             (('function_type type-attributes)
-                              (let* ((type-retn (decode-basic-type (assoc-ref type-attributes 'retn)))
+                              (let* ((type-retn (decode-type (assoc-ref type-attributes 'retn)))
                                      (args (decode-args (assoc-ref attributes 'args))) ; seldomly exist.
                                      (type-prms (decode-prms (assoc-ref type-attributes 'prms))))
                            (write name)
@@ -107,6 +175,8 @@ Return a list of all the nodes visited."
                            (write "->")
                            (write type-retn)
                            (newline)))))))
-              (_ #f))
-            ) f)
+              ((x attributes)
+               (write x)
+               (newline))))
+            f)
 
